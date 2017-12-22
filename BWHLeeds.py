@@ -9,13 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from reportlab.lib.units import cm
 from scipy.interpolate.interpolate import interp1d
-from skimage import feature, measure
 
-from pylinac.core import image
 from pylinac.core.geometry import Point
-from pylinac.core.io import get_url, retrieve_demo_file
-from pylinac.core.profile import CollapsedCircleProfile
-from pylinac.core.roi import LowContrastDiskROI, HighContrastDiskROI, DiskROI, bbox_center,RectangleROI
+from pylinac.core.roi import HighContrastDiskROI, DiskROI, bbox_center
 from pylinac.core import pdf
 
 class BWHLeeds(pylinac.LeedsTOR):
