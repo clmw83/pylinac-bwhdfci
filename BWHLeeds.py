@@ -50,6 +50,8 @@ class BWHLeeds(pylinac.LeedsTOR):
         self.lc_rois, self.lc_ref_rois = self._low_contrast(angle_offset)
         self.hc_rois, self.hc_ref_rois = self._high_contrast(hc_angle_offset,hc_shift)
         
+        self.uniformity_rois = self._uniformity() 
+        
     def _high_contrast(self,angle_offset,shift):
         """Perform high-contrast analysis. This samples disks within the line-pair region and calculates
         relative MTF from the min and max values.
@@ -87,11 +89,12 @@ class BWHLeeds(pylinac.LeedsTOR):
 
         return crois, rrois
     
-    def uniformity(self):
-        top=DiskROI(self.image,270,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
-        bottom=DiskROI(self.image,90,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
-        left=DiskROI(self.image,0,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
-        right=DiskROI(self.image,180,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+    def _uniformity(self):
+        rois={}
+        rois['top']=DiskROI(self.image,270,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+        rois['bottom']=DiskROI(self.image,90,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+        rois['left']=DiskROI(self.image,0,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+        rois['right']=DiskROI(self.image,180,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
 
         
         #top=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,270,self.phantom_radius*1.07, self.phantom_center)        
@@ -99,9 +102,10 @@ class BWHLeeds(pylinac.LeedsTOR):
         #right=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,0,self.phantom_radius*1.07, self.phantom_center)        
         #left=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,180,self.phantom_radius*1.07, self.phantom_center)        
         
-        for r in (top,bottom,left,right):
+        for name,r in rois.items():
             print(r.pixel_value)
             print(r.std)
+        return rois
         
     @property
     def phantom_angle(self):
@@ -151,3 +155,21 @@ class BWHLeeds(pylinac.LeedsTOR):
         except ValueError:
             mtf = min(ys)
         return float(mtf)
+    
+    
+    def plot_analyzed_image(self, image=True, low_contrast=True, high_contrast=True, show=True):
+        super().plot_analyzed_image(image, low_contrast, high_contrast, show)
+        
+        ax=None
+        fig=plt.gcf()
+        for a in fig.get_axes():
+            geom=a.get_subplotspec().get_geometry()
+            if (geom[2] == 0):
+                ax=a
+                break
+        if ax is not None:
+            for name,r in self.uniformity_rois.items():
+                r.plot2axes(ax,edgecolor='orange')
+        
+    
+
