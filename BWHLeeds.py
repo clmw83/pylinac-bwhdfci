@@ -1,4 +1,15 @@
+"""A Modified version of the Leeds phantom from the pylinac planar imaging module
+adapted to the specific tests required at BWH/DFCI
+
+Extra Features:
+* Improved rotation detection
+* Extra ROIs for calculating noise and assessing uniformity in different imager locations
+
+-CLW 2017-12-22
+"""
+
 import pylinac
+import numpy as np
 
 import copy
 from functools import lru_cache
@@ -6,7 +17,7 @@ import io
 import os.path as osp
 
 import matplotlib.pyplot as plt
-import numpy as np
+
 from reportlab.lib.units import cm
 from scipy.interpolate.interpolate import interp1d
 
@@ -97,11 +108,6 @@ class BWHLeeds(pylinac.LeedsTOR):
         #bottom=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,90,self.phantom_radius*1.07, self.phantom_center)        
         #right=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,0,self.phantom_radius*1.07, self.phantom_center)        
         #left=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,180,self.phantom_radius*1.07, self.phantom_center)        
-        
-        for name,r in rois.items():
-            print(r.pixel_value)
-            print(r.std)
-        return rois
         
     @property
     def phantom_angle(self):
