@@ -135,3 +135,19 @@ class BWHLeeds(pylinac.LeedsTOR):
         opposite = lead_center.y - cu_center.y
         angle = np.arctan2(opposite, adjacent)
         return angle
+    
+    def _mtf(self, x=50, lpm=False):
+        #norm = max(roi.mtf for roi in self.hc_rois)
+        lpms=[.5, .56, .63, .71, .8, .9,1,1.12,1.25]
+        norm = 1.0
+        ys = [roi.mtf / norm for roi in self.hc_rois]
+        if lpm:
+            xs=lpms
+        else:
+            xs = np.arange(len(ys))
+        f = interp1d(ys, xs)
+        try:
+            mtf = f(x / 100)
+        except ValueError:
+            mtf = min(ys)
+        return float(mtf)
