@@ -222,4 +222,13 @@ class BWHLeeds(pylinac.LeedsTOR):
             pdf.draw_text(canvas, x=1 * cm, y=5 * cm, text=notes)
         pdf.finish(canvas, open_file=open_file, filename=filename)
     
+    
+    def excel_lines(self):
+        """Generate lines you can cut and paste into the excel workbook "database"
+        """
+        print(self._mtf(90,lpm=True))
+        for name,r in rois.items():
+            print(r.pixel_value)
+            print(r.std)
+        return rois
 
