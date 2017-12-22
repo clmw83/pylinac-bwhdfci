@@ -91,10 +91,10 @@ class BWHLeeds(pylinac.LeedsTOR):
     
     def _uniformity(self):
         rois={}
-        rois['top']=DiskROI(self.image,270,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
-        rois['bottom']=DiskROI(self.image,90,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
-        rois['left']=DiskROI(self.image,0,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
-        rois['right']=DiskROI(self.image,180,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+        rois['Top']=DiskROI(self.image,270,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+        rois['Bottom']=DiskROI(self.image,90,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+        rois['Left']=DiskROI(self.image,0,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
+        rois['Right']=DiskROI(self.image,180,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
 
         
         #top=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,270,self.phantom_radius*1.07, self.phantom_center)        
@@ -171,5 +171,53 @@ class BWHLeeds(pylinac.LeedsTOR):
             for name,r in self.uniformity_rois.items():
                 r.plot2axes(ax,edgecolor='orange')
         
+        
+    def publish_pdf(self, filename=None, author=None, unit=None, notes=None, open_file=False):
+        """Publish a PDF report of the analyzed phantom. The report includes basic
+        file information, the image and determined ROIs, and contrast and MTF plots.
+
+        Parameters
+        ----------
+        filename : str
+            The path and/or filename to save the PDF report as; must end in ".pdf".
+        author : str, optional
+            The person who analyzed the image.
+        unit : str, optional
+            The machine unit name or other identifier (e.g. serial number).
+        notes : str, list of strings, optional
+            If a string, adds it as a line of text in the PDf report.
+            If a list of strings, each string item is printed on its own line. Useful for writing multiple sentences.
+        """
+        if filename is None:
+            filename = self.image.pdf_path
+        fnamestr = (osp.basename(self.image.path)[:37] + '...') if len(osp.basename(self.image.path)) > 40 else osp.basename(self.image.path)
+        canvas = pdf.create_pylinac_page_template(filename, analysis_title='BWH/DFCI Leeds TOR18 Analysis',
+                                                  author=author, unit=unit, file_name=fnamestr,
+                                                  file_created=self.image.date_created())
+        for (img, lo, hi), (w, l) in zip(((True, False, False), (False, True, False), (False, False, True)),
+                                         ((5, 12), (1, 4), (11, 4))):
+            data = io.BytesIO()
+            self.save_analyzed_image(data, image=img, low_contrast=lo, high_contrast=hi)
+            img = pdf.create_stream_image(data)
+            canvas.drawImage(img, w * cm, l * cm, width=10 * cm, height=10 * cm, preserveAspectRatio=True)
+            plt.close()
+        text = ['Leeds TOR18 results:',
+                'MTF 90% (lp/mm): {:2.2f}'.format(self._mtf(90,lpm=True)),
+                'Median Contrast: {:2.2f}'.format(np.median([roi.contrast for roi in self.lc_rois])),
+                'Median CNR: {:2.1f}'.format(np.median([roi.contrast_to_noise for roi in self.lc_rois])),
+                ]
+        pdf.draw_text(canvas, x=10 * cm, y=25.5 * cm, text=text)
+        
+        text1=[]
+        text2=[]
+        for name,r in self.uniformity_rois.items():
+            text1.append("%s : median (std)"%name)
+            text2.append("= %.1f (%.1f)"%(r.pixel_value,r.std))
+        pdf.draw_text(canvas, x=2*cm, y=23 * cm, text=text1)
+        pdf.draw_text(canvas, x=6*cm, y=23 * cm, text=text2)
+        if notes is not None:
+            pdf.draw_text(canvas, x=1 * cm, y=5.5 * cm, fontsize=14, text="Notes:")
+            pdf.draw_text(canvas, x=1 * cm, y=5 * cm, text=notes)
+        pdf.finish(canvas, open_file=open_file, filename=filename)
     
 
