@@ -33,7 +33,9 @@ class IsoCubeSet():
         
         for f in l:
             ci = CubeImage(os.path.join(imagedir,f))
-            ci.plot()
+            if plot:
+                ci.plot()
+                
             bb=ci._find_bb()
             
             if plot:
@@ -50,8 +52,9 @@ class IsoCubeSet():
             around = around % 360  
             energy=ci.metadata.ExposureSequence[0].KVP
     
-            dx=ci.metadata.XRayImageReceptorTranslation[0]+(ci.metadata.RTImagePosition[0]+bb.x*ci.metadata.ImagePlanePixelSpacing[0] * ci.metadata.RTImageOrientation[0])*1000/ci.metadata.RTImageSID
-            dy=ci.metadata.XRayImageReceptorTranslation[1]+(ci.metadata.RTImagePosition[1]+bb.y*ci.metadata.ImagePlanePixelSpacing[1] * ci.metadata.RTImageOrientation[4])*1000/ci.metadata.RTImageSID
+            dx,dy=self.pix2pos(bb)
+            #dx=ci.metadata.XRayImageReceptorTranslation[0]+(ci.metadata.RTImagePosition[0]+bb.x*ci.metadata.ImagePlanePixelSpacing[0] * ci.metadata.RTImageOrientation[0])*1000/ci.metadata.RTImageSID
+            #dy=ci.metadata.XRayImageReceptorTranslation[1]+(ci.metadata.RTImagePosition[1]+bb.y*ci.metadata.ImagePlanePixelSpacing[1] * ci.metadata.RTImageOrientation[4])*1000/ci.metadata.RTImageSID
         
             # TODO: need some sanity checking here.
             if energy>1000:
@@ -106,7 +109,20 @@ class CubeImage(image.DicomImage):
         expected_fill_ratio = np.pi / 4
         actual_fill_ratio = filled_area_ratio(logical_array)
         return expected_fill_ratio * 1.2 > actual_fill_ratio > expected_fill_ratio * 0.8
-        
+    
+
+    def pix2pos(self,p):
+        """ 
+        Take in an x/y point in pixels in the image, and return a point with the coordinates in mm based on the RT graticule/coordinate system
+        Returns
+        -------
+        float,float
+            The x/y position in 
+        """       
+        xmm=self.metadata.XRayImageReceptorTranslation[0]+(self.metadata.RTImagePosition[0]+p.x*self.metadata.ImagePlanePixelSpacing[0] * self.metadata.RTImageOrientation[0])*1000/self.metadata.RTImageSID
+        ymm=self.metadata.XRayImageReceptorTranslation[1]+(self.metadata.RTImagePosition[1]+p.y*self.metadata.ImagePlanePixelSpacing[1] * self.metadata.RTImageOrientation[4])*1000/self.metadata.RTImageSID
+        return (xmm,ymm)
+    
     def _find_bb(self):
         """Find the BB within the radiation field. Dervived from pylinac WL test.  Looks at the central 60x60 pixels and finds
         a bb
