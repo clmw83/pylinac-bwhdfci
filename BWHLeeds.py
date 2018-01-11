@@ -56,7 +56,6 @@ class BWHLeeds(pylinac.LeedsTOR):
             self._flip_image_data()
         self.lc_rois, self.lc_ref_rois = self._low_contrast(angle_offset)
         self.hc_rois, self.hc_ref_rois = self._high_contrast(hc_angle_offset,hc_shift)
-        
         self.uniformity_rois = self._uniformity() 
         
     def _high_contrast(self,angle_offset,shift):
@@ -102,7 +101,7 @@ class BWHLeeds(pylinac.LeedsTOR):
         rois['Bottom']=DiskROI(self.image,90,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
         rois['Left']=DiskROI(self.image,0,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
         rois['Right']=DiskROI(self.image,180,self.phantom_radius*0.07,self.phantom_radius*1.08,self.phantom_center)
-
+        return rois
         
         #top=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,270,self.phantom_radius*1.07, self.phantom_center)        
         #bottom=RectangleROI(self.image,self.phantom_radius*0.1,self.phantom_radius*0.1,90,self.phantom_radius*1.07, self.phantom_center)        
