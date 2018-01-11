@@ -52,7 +52,7 @@ class IsoCubeSet():
             around = around % 360  
             energy=ci.metadata.ExposureSequence[0].KVP
     
-            dx,dy=self.pix2pos(bb)
+            dx,dy=ci.pix2pos(bb)
             #dx=ci.metadata.XRayImageReceptorTranslation[0]+(ci.metadata.RTImagePosition[0]+bb.x*ci.metadata.ImagePlanePixelSpacing[0] * ci.metadata.RTImageOrientation[0])*1000/ci.metadata.RTImageSID
             #dy=ci.metadata.XRayImageReceptorTranslation[1]+(ci.metadata.RTImagePosition[1]+bb.y*ci.metadata.ImagePlanePixelSpacing[1] * ci.metadata.RTImageOrientation[4])*1000/ci.metadata.RTImageSID
         
