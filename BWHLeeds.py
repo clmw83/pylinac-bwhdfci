@@ -225,9 +225,10 @@ class BWHLeeds(pylinac.LeedsTOR):
     def excel_lines(self):
         """Generate lines you can cut and paste into the excel workbook "database"
         """
-        print(self._mtf(90,lpm=True))
-        for name,r in rois.items():
-            print(r.pixel_value)
-            print(r.std)
-        return rois
+        out=""
+        out+="%.1f\n"%self._mtf(90,lpm=True)
+        for name,r in self.uniformity_rois.items():
+            out+="%.1f\n"%(r.pixel_value)
+            out+="%.1f\n"%(r.std)
+        return out
 
