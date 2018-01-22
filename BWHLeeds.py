@@ -125,23 +125,32 @@ class BWHLeeds(pylinac.LeedsTOR):
         if self._phantom_angle is not None:
             return self._phantom_angle
         expected_length = self.phantom_radius * 0.52
-        square_rois = [roi for roi in self._blobs if np.isclose(self._regions[roi].major_axis_length, expected_length, rtol=0.2)]
-        if len(square_rois) != 2:
-            raise ValueError("Could not find the angle of the image.")
         regions = self._regions
-        idx_sort= np.argsort([regions[roi].mean_intensity for roi in square_rois])
-        lead_idx=idx_sort[1]
-        cu_idx = idx_sort[0]
-        lead_roi = regions[square_rois[lead_idx]]
-        lead_center = bbox_center(lead_roi)
-
-        cu_roi = regions[square_rois[cu_idx]]
-        cu_center = bbox_center(cu_roi)
-
-        adjacent = lead_center.x - cu_center.x
-        opposite = lead_center.y - cu_center.y
-        angle = np.arctan2(opposite, adjacent)
-        return angle
+        square_rois = [roi for roi in self._blobs if np.isclose(self._regions[roi].major_axis_length, expected_length, rtol=0.5)]
+        if len(square_rois) == 2:
+            idx_sort= np.argsort([regions[roi].mean_intensity for roi in square_rois])
+            lead_idx=idx_sort[1]
+            cu_idx = idx_sort[0]
+            lead_roi = regions[square_rois[lead_idx]]
+            lead_center = bbox_center(lead_roi)
+            cu_roi = regions[square_rois[cu_idx]]
+            cu_center = bbox_center(cu_roi)
+    
+            adjacent = lead_center.x - cu_center.x
+            opposite = lead_center.y - cu_center.y
+            angle = np.arctan2(opposite, adjacent)
+            return angle
+        elif len(square_rois)==1:
+            lead_idx = np.argsort([regions[roi].mean_intensity for roi in square_rois])[-1]
+            lead_roi = regions[square_rois[lead_idx]]
+            lead_center = bbox_center(lead_roi)
+    
+            adjacent = lead_center.x - self.phantom_center.x
+            opposite = lead_center.y - self.phantom_center.y
+            angle = np.arctan2(opposite, adjacent)
+            return angle
+        else:
+            raise ValueError("Could not find the Phantom Angle")
     
     def _mtf(self, x=50, lpm=False):
         #norm = max(roi.mtf for roi in self.hc_rois)
