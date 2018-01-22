@@ -60,7 +60,7 @@ def index():
             finally:
                 os.remove(savename)
                 os.remove(pdfname)
-                os.removedirs(tempdir)
+                os.rmdir(tempdir)
     return """
     <!doctype html>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
