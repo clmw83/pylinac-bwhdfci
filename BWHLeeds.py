@@ -221,14 +221,32 @@ class BWHLeeds(pylinac.LeedsTOR):
             pdf.draw_text(canvas, x=1 * cm, y=5 * cm, text=notes)
         pdf.finish(canvas, open_file=open_file, filename=filename)
     
+
+    def _get_canny_regions(self, sigma=2, percentiles=(0.001, 0.01)):
+        """Compute the canny edges of the image and return the connected regions found."""
+        # copy, filter, and ground the image
+        img_copy= copy.copy(self.image)
+        img_copy.array = np.array(img_copy.array,dtype=np.float)
+        img_copy.filter(kind='gaussian', size=sigma)
+        img_copy.ground()
+
+        # compute the canny edges with very low thresholds (detects nearly everything)
+        lo_th, hi_th = np.percentile(img_copy, percentiles)
+        print(lo_th,hi_th)
+        c = feature.canny(img_copy, low_threshold=lo_th, high_threshold=hi_th)
+
+        # label the canny edge regions
+        labeled = measure.label(c)
+        regions = measure.regionprops(labeled, intensity_image=img_copy)
+        return regions
     
     def excel_lines(self):
         """Generate lines you can cut and paste into the excel workbook "database"
         """
         out=""
-        out+="%.1f\n"%self._mtf(90,lpm=True)
+        out+="%.3f\n"%self._mtf(90,lpm=True)
         for name,r in self.uniformity_rois.items():
-            out+="%.1f\n"%(r.pixel_value)
-            out+="%.1f\n"%(r.std)
+            out+="%.2f\n"%(r.pixel_value)
+            out+="%.2f\n"%(r.std)
         return out
 
