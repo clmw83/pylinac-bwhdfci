@@ -25,6 +25,8 @@ from pylinac.core.geometry import Point
 from pylinac.core.roi import HighContrastDiskROI, DiskROI, bbox_center
 from pylinac.core import pdf
 
+from skimage import feature,measure
+
 class BWHLeeds(pylinac.LeedsTOR):
     def analyze(self, low_contrast_threshold=0.005, hi_contrast_threshold=0.4, invert=False,
             angle_offset=0, hc_angle_offset=0, hc_shift=Point(0,0)):
