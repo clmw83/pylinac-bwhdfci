@@ -132,7 +132,7 @@ class CubeImage(image.DicomImage):
         Point
             The weighted-pixel value location of the BB.
         """
-        span=30
+        span=20
         bbox=[int(self.cax.y-span),int(self.cax.x-span),int(self.cax.y+span),int(self.cax.x+span)]
         subim=np.array(self.array[bbox[0]:bbox[2],bbox[1]:bbox[3]],dtype=np.float)
 
