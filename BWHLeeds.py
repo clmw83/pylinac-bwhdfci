@@ -219,17 +219,17 @@ class BWHLeeds(pylinac.LeedsTOR):
             canvas.drawImage(img, w * cm, l * cm, width=10 * cm, height=10 * cm, preserveAspectRatio=True)
             plt.close()
         text = ['Leeds TOR18 results:',
-                'MTF 90% (lp/mm): {:2.2f}'.format(self._mtf(90,lpm=True)),
-                'Median Contrast: {:2.2f}'.format(np.median([roi.contrast for roi in self.lc_rois])),
-                'Median CNR: {:2.1f}'.format(np.median([roi.contrast_to_noise for roi in self.lc_rois])),
+                'MTF 90% (lp/mm): {:2.3f}'.format(self._mtf(90,lpm=True)),
+                'Median Contrast: {:2.5f}'.format(np.median([roi.contrast for roi in self.lc_rois])),
+                'Median CNR: {:2.2f}'.format(np.median([roi.contrast_to_noise for roi in self.lc_rois])),
                 ]
         pdf.draw_text(canvas, x=10 * cm, y=25.5 * cm, text=text)
         
         text1=[]
         text2=[]
         for name,r in self.uniformity_rois.items():
-            text1.append("%s : median (std)"%name)
-            text2.append("= %.1f (%.1f)"%(r.pixel_value,r.std))
+            text1.append("%s : mean (std)"%name)
+            text2.append("= %.1f (%.1f)"%(np.nanmean(r.circle_mask()),r.std))
         pdf.draw_text(canvas, x=2*cm, y=23 * cm, text=text1)
         pdf.draw_text(canvas, x=6*cm, y=23 * cm, text=text2)
         if notes is not None:
@@ -260,9 +260,10 @@ class BWHLeeds(pylinac.LeedsTOR):
         """Generate lines you can cut and paste into the excel workbook "database"
         """
         out=""
+        out+="%.5f\n"%np.median([roi.contrast for roi in self.lc_rois])
         out+="%.3f\n"%self._mtf(90,lpm=True)
         for name,r in self.uniformity_rois.items():
-            out+="%.2f\n"%(r.pixel_value)
+            out+="%.2f\n"%(np.nanmean(r.circle_mask()))
             out+="%.2f\n"%(r.std)
         return out
 
