@@ -248,7 +248,6 @@ class BWHLeeds(pylinac.LeedsTOR):
 
         # compute the canny edges with very low thresholds (detects nearly everything)
         lo_th, hi_th = np.percentile(img_copy, percentiles)
-        print(lo_th,hi_th)
         c = feature.canny(img_copy, low_threshold=lo_th, high_threshold=hi_th)
 
         # label the canny edge regions
