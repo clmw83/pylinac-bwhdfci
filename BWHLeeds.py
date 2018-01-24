@@ -28,6 +28,11 @@ from pylinac.core import pdf
 from skimage import feature,measure
 
 class BWHLeeds(pylinac.LeedsTOR):
+    
+    def __init__(self,filepath):
+        super().__init__(filepath)
+        self.image.array = np.array(self.image.array,dtype=np.float)
+        
     def analyze(self, low_contrast_threshold=0.005, hi_contrast_threshold=0.4, invert=False,
             angle_offset=0, hc_angle_offset=0, hc_shift=Point(0,0)):
         """Analyze the image.
