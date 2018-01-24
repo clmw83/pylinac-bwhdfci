@@ -18,12 +18,12 @@ import matplotlib.pyplot as plt
 
 class IsoCubeSet():
 
-    def __init__(self,imagedir=None):
+    def __init__(self,imagedir=None,plot=False):
         self.MV_offsets=None
         self.kV_offsets=None
         
         if imagedir is not None:
-            self.scan_dir(os.path.abspath(imagedir))
+            self.scan_dir(os.path.abspath(imagedir),plot=plot)
     
     def scan_dir(self,imagedir,plot=False):
         self.MV_offsets={}
@@ -158,13 +158,17 @@ class CubeImage(image.DicomImage):
             except (IndexError, ValueError):
                 lower_thresh += 0.05 * spread
                 if lower_thresh > hmax-spread*.5:
-                    raise ValueError("Unable to locate the BB. Make sure the field edges do not obscure the BB and that there is no artifacts in the images.")
+                    raise ValueError("Unable to locate the BB. Make sure the field edges do not obscure the BB and that there is no artifact in the images.")
             else:
                 found = True
 
         # determine the center of mass of the BB
         
         x_arr = np.abs(np.average(subim*bw_bb_img, axis=0))
+        #plt.figure()
+        #plt.plot(x_arr)
+        #plt.figure()
+        #plt.imshow(bw_bb_img)
         x_com = SingleProfile(np.array(x_arr,dtype=np.float)).fwxm_center(interpolate=True)
         y_arr = np.abs(np.average(subim*bw_bb_img, axis=1))
         y_com = SingleProfile(y_arr).fwxm_center(interpolate=True)              
