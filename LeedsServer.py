@@ -10,14 +10,14 @@ Created on Mon Jan 22 10:19:42 2018
 import os
 import matplotlib
 matplotlib.use('agg')
-from flask import Flask, request, redirect, url_for,make_response
+from flask import Flask, request, redirect, url_for,make_response,render_template,Markup
 from werkzeug import secure_filename
 import BWHLeeds
 import logging
 import tempfile
 import traceback
 import base64
-
+import io,urllib
 
 UPLOAD_FOLDER = os.path.join('.','LeedsTemp')
 if not os.path.exists(UPLOAD_FOLDER):
@@ -32,11 +32,14 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/")
 def index():
+    return render_template("Home.html")
+
+@app.route("/Leeds", methods=['GET', 'POST'])
+def leeds():
     logtext=""
-    if request.method == 'POST':
-        
+    if request.method == 'POST':   
         file = request.files['file']
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -47,47 +50,39 @@ def index():
                 leeds=BWHLeeds.BWHLeeds(savename)
                 leeds.analyze()
                 pdfname = os.path.join(tempdir,"Leeds.pdf")
-                leeds.publish_pdf(pdfname)
+                leeds.publish_pdf(pdfname)      
                 data_uri = base64.b64encode(open(pdfname, "rb").read()).decode('ascii')
+                os.remove(pdfname)
+                leeds.plot_analyzed_image()
+                fig = matplotlib.pyplot.gcf()
+                fig.set_size_inches(18.5, 10.5)
+                fig.tight_layout()
+                buf = io.BytesIO()
+                matplotlib.pyplot.savefig(buf, format='png')
+                matplotlib.pyplot.close('all')
+                buf.seek(0)
+                pnguri = 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read()))     
                 logtext+="Successfully processed!\n"
                 logtext+="Copy the below lines into the excel workbook:\n"
                 logtext+=leeds.excel_lines()
                 logtext+="\n"
-                logtext+='<button type="button" onclick=DownloadURI("%s")>Download PDF</button>'%data_uri
+                logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s")>Download PDF</button>\n'%data_uri
+                logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
             except:
-                logtext+="Failed processing leeds!"
+                logtext+="Failed processing leeds!\n"
+                logtext+="Are you sure you selected a Leeds phantom image?\n"
+                logtext+="\nDebug information:\n"
                 logtext+=traceback.format_exc()
             finally:
-                os.remove(savename)
-                os.remove(pdfname)
+                os.remove(savename)                
                 os.rmdir(tempdir)
-    return """
-    <!doctype html>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Leeds Phantom Processing</title>
-    <script type="text/javascript">
-        function DownloadURI(data){
-            var blob = new Blob([atob(data)],{type: 'application/pdf'});
-            if (window.navigator.msSaveBlob) { // IE
-               window.navigator.msSaveOrOpenBlob(blob,"Leeds.pdf");
-            }
-            else {
-                var a = window.document.createElement("a");
-                a.href = window.URL.createObjectURL(blob, { type: "application/pdf" });
-                a.download = "Leeds.pdf";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-        }
-    </script>
-    <h1>Upload new Leeds Phantom File</h1>
-    <form action="" method=post enctype=multipart/form-data>
-      <p><input type=file name=file>
-         <input type=submit value=Process>
-    </form>
-    <p>%s</p>
-    """ % (logtext.replace('\n','<br/>'))
+            return Markup(logtext.replace('\n','<br/>'))
+    else:
+        return render_template('Leeds.html', logtext=Markup(logtext.replace('\n','<br/>')))
+
+@app.route("/IsoCube", methods=['GET', 'POST'])
+def IsoCube():
+    return render_template('IsoCube.html')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=5001, debug=True)
