@@ -1,13 +1,8 @@
-<!DOCTYPE HTML>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!DOCTYPE html>
+<html>
 <head>
-    <title>Leeds Phantom Processing</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-	{% block scripts %}{% endblock %}
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>BWH/DFCI Imaging QA</title>
     <script type="text/javascript">
         function DownloadURI(data){
             var blob = new Blob([atob(data)],{type: 'application/pdf'});
@@ -51,10 +46,11 @@
     <div class="container-fluid">
 		<div class="row">
 			<div class="col-sm-3 col-md-2 sidebar">
-			  <ul class="nav nav-sidebar">
-				<li class="{% block nav_Home %}{% endblock %}"><a href="/">Home <span class="sr-only">(current)</span></a></li>
-				<li class="{% block nav_Leeds %}{% endblock %}"><a href="/Leeds">Leeds</a></li>
-				<li class="{% block nav_IsoCube %}{% endblock %}"><a href="/IsoCube">IsoCube</a></li>
+				<ul class="nav nav-sidebar">
+					<li class="{% block nav_Home %}{% endblock %}"><a href="/">Home <span class="sr-only">(current)</span></a></li>
+					<li class="{% block nav_Leeds %}{% endblock %}"><a href="/Leeds">Leeds</a></li>
+					<li class="{% block nav_IsoCube %}{% endblock %}"><a href="/IsoCube">IsoCube</a></li>
+				</ul>
 			</div>
 			<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 			  <h1 class="page-header">{% block title %}{% endblock %}</h1>
@@ -62,6 +58,22 @@
 			</div>
 		</div>
 	</div>
+
+ 
+
+	
+	<!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	{% block scripts %}{% endblock %}
 	
 	</body>
 </html>
