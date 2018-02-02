@@ -5,7 +5,7 @@
 {% block title %}Leeds Phantom {% endblock %}
 
 {% block content %}
-    <form action="" method=post enctype=multipart/form-data>
+    <form method=post enctype=multipart/form-data>
 	  <input type=file name=file><br/>
       <input id="process" type=submit class="btn btn-lg btn-default" value=Process><br/>
     </form><br/>
@@ -23,8 +23,8 @@
 			
 		var bar = $('#bar');
 		var status = $('#status');
-		   
 		$('form').ajaxForm({
+			url: "/Leeds/Process",
 			beforeSend: function() {
 				status.empty();
 				var percentVal = '0%';
