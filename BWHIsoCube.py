@@ -197,7 +197,7 @@ class CubeImage(image.DicomImage):
         """
         span=20
         bbox=[int(self.cax.y-span),int(self.cax.x-span),int(self.cax.y+span),int(self.cax.x+span)]
-        subim=np.array(self.array[bbox[0]:bbox[2],bbox[1]:bbox[3]],dtype=np.float)
+        subim=ndimage.gaussian_filter(np.array(self.array[bbox[0]:bbox[2],bbox[1]:bbox[3]],dtype=np.float),sigma=(1,1),order=0)
 
         self._bbox_max=np.max(subim)
         self._bbox_min=np.min(subim)
@@ -205,7 +205,7 @@ class CubeImage(image.DicomImage):
         hmin, hmax = np.percentile(subim, [10, 100.0])
         spread = hmax - hmin
         max_thresh = hmax
-        lower_thresh = hmax - spread*.95
+        lower_thresh = hmax - spread*.2
         # search for the BB by iteratively lowering the low-pass threshold value until the BB is found.
         found = False
         while not found:
@@ -221,8 +221,8 @@ class CubeImage(image.DicomImage):
                 if not self._is_symmetric(bw_bb_img):
                     raise ValueError
             except (IndexError, ValueError):
-                lower_thresh += 0.05 * spread
-                if lower_thresh > hmax-spread*.5:
+                lower_thresh -= 0.05 * spread
+                if lower_thresh < hmin:
                     raise ValueError("Unable to locate the BB. Make sure the field edges do not obscure the BB and that there is no artifact in the images.")
             else:
                 found = True
