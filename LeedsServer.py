@@ -72,7 +72,7 @@ def processLeeds():
                 logtext+="Copy the below lines into the excel workbook:\n"
                 logtext+=leeds.excel_lines()
                 logtext+="\n"
-                logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s")>Download PDF</button>\n'%data_uri
+                logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s","Leeds.pdf")>Download PDF</button>\n'%data_uri
                 logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
             except:
                 logtext+="Failed processing leeds!\n"
