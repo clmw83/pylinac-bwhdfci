@@ -1,0 +1,59 @@
+{% extends 'QAbase.html' %}
+
+{% block nav_Leeds %} active {% endblock %}
+
+{% block title %}Leeds Phantom {% endblock %}
+
+{% block content %}
+    <form method=post enctype=multipart/form-data>
+	  <input type=file name=file><br/>
+      <input id="process" type=submit class="btn btn-lg btn-default" value=Process><br/>
+    </form><br/>
+	    <div class="progress">
+		<div id="bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
+		</div> 
+    <div id="status"></div>
+    <p>{{logtext}}</p>
+{% endblock %}
+
+{% block scripts %}
+	<script src="http://malsup.github.com/jquery.form.js"></script>
+	<script>
+		(function() {
+			
+		var bar = $('#bar');
+		var status = $('#status');
+		$('form').ajaxForm({
+			url: "/Leeds/Process",
+			beforeSend: function() {
+				status.empty();
+				var percentVal = '0%';
+				bar.css('width',percentVal).attr('aria-valuenow', 0);
+				bar.html(percentVal);
+			},
+			uploadProgress: function(event, position, total, percentComplete) {
+				var percentVal = percentComplete + '%';
+				bar.addClass('active');
+				bar.css('width', percentVal).attr('aria-valuenow', percentComplete);
+				bar.html(percentVal);
+				if (percentComplete >= 99){
+					bar.html("Processing...");
+				}
+			},
+			success: function() {
+				var percentVal = '100%';
+				bar.css('width',percentVal).attr('aria-valuenow', 100);
+				bar.html("Processing...");
+			},
+			complete: function(xhr) {
+				status.html(xhr.responseText);
+				bar.removeClass('active');
+				bar.html("Complete!");
+
+
+			}
+		}); 
+
+		})();       
+	</script>
+{% endblock %}
