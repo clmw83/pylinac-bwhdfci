@@ -15,6 +15,7 @@ from werkzeug import secure_filename
 import BWHLeeds
 import BWHIsoCube
 import BWHCatPhan
+import BWHLasVegas
 import logging
 import tempfile
 import traceback
@@ -73,6 +74,56 @@ def processLeeds():
                 logtext+=leeds.excel_lines()
                 logtext+="\n"
                 logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s","Leeds.pdf")>Download PDF</button>\n'%data_uri
+                logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
+            except:
+                logtext+="Failed processing leeds!\n"
+                logtext+="Are you sure you selected a Leeds phantom image?\n"
+                logtext+="\nDebug information:\n"
+                logtext+=traceback.format_exc()
+            finally:
+                os.remove(savename)                
+                os.rmdir(tempdir)
+        else:
+            logtext="Invalid File!\n%s is not a valid DICOM file"%file.filename
+    else:
+        logtext="Error receiving file!\n"
+    return make_response(Markup(logtext.replace('\n','<br/>')))
+
+@app.route("/LasVegas")
+def LasVegas():
+    return render_template('LasVegas.html')
+    
+@app.route("/LasVegas/Process", methods=['POST'])
+def processLasVegas():
+    logtext=""
+    if 'file' in request.files:   
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            tempdir=tempfile.mkdtemp(dir=app.config['UPLOAD_FOLDER'])
+            filename = secure_filename(file.filename)
+            savename=os.path.join(tempdir, filename)
+            file.save(savename)
+            try:
+                lv=BWHLasVegas.BWH_LV(savename)
+                lv.analyze()
+                pdfname = os.path.join(tempdir,"LasVegas.pdf")
+                lv.publish_pdf(pdfname)      
+                data_uri = base64.b64encode(open(pdfname, "rb").read()).decode('ascii')
+                os.remove(pdfname)
+                lv.plot_analyzed_image()
+                fig = matplotlib.pyplot.gcf()
+                fig.set_size_inches(18.5, 10.5)
+                fig.tight_layout()
+                buf = io.BytesIO()
+                matplotlib.pyplot.savefig(buf, format='png')
+                matplotlib.pyplot.close('all')
+                buf.seek(0)
+                pnguri = 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read()))     
+                logtext+="Successfully processed!\n"
+                logtext+="Copy the below lines into the excel workbook:\n"
+                logtext+=lv.excel_lines()
+                logtext+="\n"
+                logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s","LasVegas.pdf")>Download PDF</button>\n'%data_uri
                 logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
             except:
                 logtext+="Failed processing leeds!\n"
