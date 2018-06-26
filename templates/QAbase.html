@@ -4,15 +4,15 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>BWH/DFCI Imaging QA</title>
     <script type="text/javascript">
-        function DownloadURI(data){
+        function DownloadURI(data,fname="Result.pdf"){
             var blob = new Blob([atob(data)],{type: 'application/pdf'});
             if (window.navigator.msSaveBlob) { // IE
-               window.navigator.msSaveOrOpenBlob(blob,"Leeds.pdf");
+               window.navigator.msSaveOrOpenBlob(blob,fname);
             }
             else {
                 var a = window.document.createElement("a");
                 a.href = window.URL.createObjectURL(blob, { type: "application/pdf" });
-                a.download = "Leeds.pdf";
+                a.download = fname;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -50,6 +50,8 @@
 					<li class="{% block nav_Home %}{% endblock %}"><a href="/">Home <span class="sr-only">(current)</span></a></li>
 					<li class="{% block nav_Leeds %}{% endblock %}"><a href="/Leeds">Leeds</a></li>
 					<li class="{% block nav_IsoCube %}{% endblock %}"><a href="/IsoCube">IsoCube</a></li>
+					<li class="{% block nav_CatPhan %}{% endblock %}"><a href="/CatPhan">CatPhan</a></li>
+
 				</ul>
 			</div>
 			<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
