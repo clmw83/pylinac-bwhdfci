@@ -124,7 +124,7 @@ class IsoCubeSet():
             if j is not None:
                 os+="%0.2f\n"%j
     
-        os+="\nMV:"
+        os+="\nMV:\n"
         out=[None]*8
         for angle,delta in self.MV_offsets.items():
             i=angle//90
