@@ -3,6 +3,76 @@
 Changelog
 =========
 
+V 2.1.0
+-------
+
+General
+^^^^^^^
+
+* After reflection, the package seems to have bloated in some respects.
+  Certain behaviors are only helpful in very few circumstances and are hard to maintain w/ proper testing.
+  They are described below or in their respective sections.
+* The command line commands have been deprecated. All commands were simply shortcuts that are just as easy to place in
+  a 1-2 line Python script. There was no good use case for it in the context of how typical physicists work.
+* The interactive plotting using MPLD3 has been deprecated. Matplotlib figures and PDF reports should be sufficient.
+  This was a testing nightmare and no use cases have been presented.
+* The transition of the method ``return_results()`` to ``results()`` is complete. This was baked-in from the very
+  beginning of the package. It is expected that results would return something, nor is there any other corresponding
+  method prefixed with ``return_``.
+* Pip is now the recommended way to install pylinac. Packaging for conda was somewhat cumbersome. Pylinac itself is just
+  Python and was always installable via pip; it is the dependencies that are complicated.
+  The wheels format seems to be changing that.
+* Some dependency minimum versions have been bumped.
+
+CatPhan
+^^^^^^^
+
+* The module was refactored to easily alter existing and add new catphan models.
+* The CatPhan HU module classifier has been deprecated. Its accuracy was not as high as the original brute force method.
+  Thus, the ``use_classifier`` keyword argument is no longer valid.
+* CatPhan 604 support was added thanks to contributions and datasets from `Alan Chamberlain <https://github.com/alanphys>`_.
+  More datasets are needed to ensure robust analysis, so please contribute your dataset if it fails analysis.
+* The CTP528 slice (High resolution line pairs) behavior was changed to extract the max value from 3 adjacent slices.
+  This was done because sometimes the line pair slice selected was slightly offset from the optimum slice. Using the
+  mean would lower MTF values. While using the max slightly increases the determined MTF from previous versions,
+  the reproducibility was increased across datasets.
+
+Winston-Lutz
+^^^^^^^^^^^^
+
+* Certain properties have been deprecated such as gantry/coll/couch vector to iso.
+  These are dropped in favor of a cumulative vector.
+* A BB shift vector and shift instructions have been added for iterative WL testing.
+  I.e. you can get a BB shift to move the BB to the determined iso easily.
+
+  .. code-block:: python
+
+    import pylinac
+
+    wl = pylinac.WinstonLutz.from_demo_images()
+    print(wl.bb_shift_instructions())
+    # output: RIGHT 0.29mm; DOWN 0.04mm; OUT 0.41mm
+    # shift BB and run it again...
+
+* Images taken at nonzero couch angles are now correctly accounted for in the BB shift.
+* Images now do not take into account shifts along the axis of the beam (`#116 <https://github.com/jrkerns/pylinac/issues/116>`_).
+* The name of the file will now not automatically be interpreted if it can. This could cause issues for valid DICOM files that had sufficient metadata.
+  If the image was taken at Gantry of 45 and the file name contained "gantry001" due to, e.g., TrueBeam's default naming convention it would override the DICOM data.
+  (`#124 <https://github.com/jrkerns/pylinac/issues/124>`_)
+
+Picket Fence
+^^^^^^^^^^^^
+
+* Files can now allow for interpretation by the file name, similar to the WL module. This is helpful for Elekta linacs that may be doing this test (`#126 <https://github.com/jrkerns/pylinac/issues/126>`_).
+
+Core Modules
+^^^^^^^^^^^^
+
+* ``is_dicom`` and ``is_dicom_image`` were moved from the ``utilites`` module to the ``io`` module.
+* ``field_edges()`` had the parameter ``interpolation`` added so that field edges could be computed more accurately (`#123 <https://github.com/jrkerns/pylinac/issues/123>`_)
+* A new class was created called ``LinacDicomImage``. This is a subclass of ``DicomImage`` and currently adds smart gantry/coll/couch angle interpretation but may be extended further in the future.
+
+
 V 2.0.0
 -------
 

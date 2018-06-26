@@ -308,6 +308,23 @@ class CTP404(CatPhanModule):
                 },
                 'background ROI angles': [-30, -150, -210, 30]
             }
+        elif isinstance(catphan, CatPhan604):
+            self.hu = {
+                'distance to ROIs': 58.7/self.mm_per_pixel,
+                'ROI radius': 5/self.mm_per_pixel,
+                'ROIs': {
+                    'Air': {'value': -1000, 'angle': -90},
+                    'PMP': {'value': -200, 'angle': -120},
+                    '50% Bone': {'value': 725, 'angle': -150},
+                    'LDPE': {'value': -100, 'angle': 180},
+                    'Poly': {'value': -35, 'angle': 120},
+                    'Acrylic': {'value': 120, 'angle': 60},
+                    '20% Bone': {'value': 240, 'angle': 30},
+                    'Delrin': {'value': 340, 'angle': 0},
+                    'Teflon': {'value': 990, 'angle': -60},
+                },
+                'background ROI angles': [-30, -210]
+            }
         self.bg_hu_rois = OrderedDict()
         self.hu_rois = OrderedDict()
 
@@ -420,7 +437,7 @@ class CTP404(CatPhanModule):
         axis.plot(nominal_x_values, np.array(nominal_measurements) + self.hu_tolerance, 'r--')
         axis.plot(nominal_x_values, np.array(nominal_measurements) - self.hu_tolerance, 'r--')
         axis.margins(0.05)
-        axis.grid('on')
+        axis.grid(True)
         axis.set_xlabel("Nominal Values")
         axis.set_ylabel(ylabel)
         axis.set_title("HU linearity")
@@ -510,7 +527,7 @@ class CTP486(CatPhanModule):
         # TODO: replace .plot() calls with .axhline() calls when mpld3 fixes functionality
         axis.plot([i for i in range(len(horiz_data))], [self.tolerance] * len(horiz_data), 'r-', linewidth=3)
         axis.plot([i for i in range(len(horiz_data))], [-self.tolerance] * len(horiz_data), 'r-', linewidth=3)
-        axis.grid('on')
+        axis.grid(True)
         axis.set_ylabel("HU")
         axis.legend(loc=8, fontsize='small', title="")
         axis.set_title("Uniformity Profiles")
@@ -550,6 +567,8 @@ class CTP528(CatPhanModule):
     attr_name = 'ctp528'
     common_name = 'Spatial Resolution'
     radius2linepairs_mm = 47
+    combine_method = 'max'
+    num_slices = 3
 
     def _setup_rois(self):
         pass
@@ -633,6 +652,9 @@ class CTP528(CatPhanModule):
         elif isinstance(catphan, CatPhan600):
             self.start_angle = np.pi - 0.1
             self.ccw = False
+        elif isinstance(catphan, CatPhan604):
+            self.start_angle = np.pi
+            self.ccw = True
 
     @property
     @lru_cache(maxsize=1)
@@ -689,7 +711,7 @@ class CTP528(CatPhanModule):
         mtf_vals = list(self.mtfs.values())
         points = axis.plot(self.lp_freq[:len(mtf_vals)], mtf_vals, marker='o')
         axis.margins(0.05)
-        axis.grid('on')
+        axis.grid(True)
         axis.set_xlabel('Line pairs / mm')
         axis.set_ylabel("Relative MTF")
         axis.set_title('RMTF')
@@ -824,7 +846,7 @@ class CTP515(CatPhanModule):
         contrasts = [roi.contrast_constant for roi in self.rois.values()]
         points = axis.plot(sizes, contrasts)
         axis.margins(0.05)
-        axis.grid('on')
+        axis.grid(True)
         axis.set_xlabel('ROI size (mm)')
         axis.set_ylabel("Contrast * Diameter")
         return points
@@ -1034,7 +1056,7 @@ class CatPhanBase:
         print("Phantom roll: {0}".format(self.find_phantom_roll()))
         print("Origin slice: {}".format(self.find_origin_slice()))
         mtfs = {}
-        for mtf in (30, 50, 80):
+        for mtf in (95, 90, 80, 70, 60):
             mtfval = self.ctp528.mtf(mtf)
             mtfs[mtf] = mtfval
         print('MTFs: {}'.format(mtfs))
@@ -1067,7 +1089,7 @@ class CatPhanBase:
         hu_slices = []
         for image_number in range(0, self.num_images, 2):
             slice = Slice(self, image_number, combine=False)
-            # print(image_number)
+            #print(image_number)
             # slice.image.plot()
             try:
                 center = slice.phan_center
@@ -1082,6 +1104,7 @@ class CatPhanBase:
                 if (low_end < median - 400) and (high_end > median + 400) and (
                                 np.percentile(prof, 80) - np.percentile(prof, 20) < 100):
                     hu_slices.append(image_number)
+                    #print(image_number)
 
         if not hu_slices:
             raise ValueError("No slices were found that resembled the HU linearity module")
@@ -1092,6 +1115,7 @@ class CatPhanBase:
         hu_slices = hu_slices[((c + ln/2) >= hu_slices) & (hu_slices >= (c - ln/2))]
         center_hu_slice = int(round(np.median(hu_slices)))
         if self._is_within_image_extent(center_hu_slice):
+            #print(center_hu_slice)
             return center_hu_slice
 
     @lru_cache(maxsize=1)
@@ -1321,17 +1345,13 @@ class CatPhan503(CatPhanBase):
         CTP528: {'offset': -30},
     }
 
-    @classmethod
-    def run_demo(cls, show=True):
+    @staticmethod
+    def run_demo(show=True):
         """Run the CBCT demo using high-quality head protocol images."""
-        obj = cls.from_demo_images()
-        obj.analyze()
-        print(obj.results())
-        obj.plot_analyzed_image(show)
-        # cbct = CatPhan503.from_demo_images()
-        # cbct.analyze()
-        # print(cbct.results())
-        # cbct.plot_analyzed_image(show)
+        cbct = CatPhan503.from_demo_images()
+        cbct.analyze()
+        print(cbct.results())
+        cbct.plot_analyzed_image(show)
 
 
 class CatPhan504(CatPhanBase):
@@ -1352,6 +1372,29 @@ class CatPhan504(CatPhanBase):
     def run_demo(show=True):
         """Run the CBCT demo using high-quality head protocol images."""
         cbct = CatPhan504.from_demo_images()
+        cbct.analyze()
+        print(cbct.results())
+        cbct.plot_analyzed_image(show)
+
+
+class CatPhan604(CatPhanBase):
+    """A class for loading and analyzing CT DICOM files of a CatPhan 604. Can be from a CBCT or CT scanner
+    Analyzes: Uniformity (CTP486), High-Contrast Spatial Resolution (CTP528),
+    Image Scaling & HU Linearity (CTP404), and Low contrast (CTP515).
+    """
+    _demo_url = 'CatPhan604.zip'
+    _model = '604'
+    catphan_radius_mm = 101
+    modules = {
+        CTP486: {'offset': -80},
+        CTP528: {'offset': 42},
+        CTP515: {'offset': -40}
+    }
+
+    @staticmethod
+    def run_demo(show=True):
+        """Run the CBCT demo using high-quality head protocol images."""
+        cbct = CatPhan604.from_demo_images()
         cbct.analyze()
         print(cbct.results())
         cbct.plot_analyzed_image(show)
@@ -1390,7 +1433,7 @@ def get_regions(slice_or_arr, fill_holes=False, clear_borders=True, threshold='o
         edges = filters.scharr(slice_or_arr.image.array.astype(np.float))
         center = slice_or_arr.image.center
     elif isinstance(slice_or_arr, np.ndarray):
-        edges = filters.scharr(slice_or_arr)
+        edges = filters.scharr(slice_or_arr.astype(np.float))
         center = (int(edges.shape[1]/2), int(edges.shape[0]/2))
     edges = filters.gaussian(edges, sigma=1)
     if isinstance(slice_or_arr, Slice):
@@ -1402,7 +1445,7 @@ def get_regions(slice_or_arr, fill_holes=False, clear_borders=True, threshold='o
         thres = thresmeth(edges)
     bw = edges > thres
     if clear_borders:
-        segmentation.clear_border(bw, buffer_size=1, in_place=True)
+        segmentation.clear_border(bw, buffer_size=int(max(bw.shape)/50), in_place=True)
     if fill_holes:
         bw = ndimage.binary_fill_holes(bw)
     labeled_arr, num_roi = measure.label(bw, return_num=True)
