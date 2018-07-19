@@ -1331,7 +1331,7 @@ class CatPhanBase:
                    '{:2.1f}\n'
                    '{:2.1f}\n'
                    '{:2.1f}\n'
-                   '{:2.4f}\n').format(self.ctp404.avg_line_length-50.0,
+                   '{:2.4f}\n').format(np.abs(self.ctp404.avg_line_length-50.0),
                                   self.ctp528.mtf(50),
                                   contrast,                            
                                   cnr,
