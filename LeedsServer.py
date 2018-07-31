@@ -126,8 +126,8 @@ def processLasVegas():
                 logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s","LasVegas.pdf")>Download PDF</button>\n'%data_uri
                 logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
             except:
-                logtext+="Failed processing leeds!\n"
-                logtext+="Are you sure you selected a Leeds phantom image?\n"
+                logtext+="Failed processing LasVegas phantom!\n"
+                logtext+="Are you sure you selected a LasVegas phantom image?\n"
                 logtext+="\nDebug information:\n"
                 logtext+=traceback.format_exc()
             finally:
