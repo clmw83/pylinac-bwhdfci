@@ -43,7 +43,6 @@ def allowed_file(filename):
 def currfig2uri():
     buf = io.BytesIO()
     matplotlib.pyplot.savefig(buf, format='png')
-    matplotlib.pyx
     matplotlib.pyplot.close('all')
     buf.seek(0)
     pnguri = 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read()))
@@ -51,7 +50,7 @@ def currfig2uri():
 
 def dcm2uri(fname):
     d=pydicom.read_file(fname)
-    matplotlib.pyplot.imshow(d.pixel_data)
+    matplotlib.pyplot.imshow(d.pixel_array)
     uri=currfig2uri()
     return uri
 
@@ -67,6 +66,7 @@ def leeds():
 @app.route("/Leeds/Process", methods=['POST'])
 def processLeeds():
     logtext=""
+    dcmuri=""
     if 'file' in request.files:   
         file = request.files['file']
         if file and allowed_file(file.filename):
@@ -115,6 +115,7 @@ def LasVegas():
 @app.route("/LasVegas/Process", methods=['POST'])
 def processLasVegas():
     logtext=""
+    dcmuri=""
     if 'file' in request.files:   
         file = request.files['file']
         if file and allowed_file(file.filename):
@@ -144,6 +145,7 @@ def processLasVegas():
             except:
                 logtext+="Failed processing LasVegas phantom!\n"
                 logtext+="Are you sure you selected a LasVegas phantom image?\n"
+                logtext+="Are the jaws open enough to acacurately detect the phantom edge?\n"
                 logtext+='Uploaded Image:\n<img src = "%s" class="img-responsive"/>\n'%dcmuri
                 logtext+="\nDebug information:\n"
                 logtext+=traceback.format_exc()
