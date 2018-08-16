@@ -21,8 +21,7 @@ import tempfile
 import traceback
 import base64
 import io,urllib,shutil
-
-import QAServerConfig
+import pydicom
 
 try:
     UPLOAD_FOLDER = os.environ['PYLINAC_TEMPDIR']
@@ -45,14 +44,14 @@ def currfig2uri():
     buf = io.BytesIO()
     matplotlib.pyplot.savefig(buf, format='png')
     matplotlib.pyx
-    plot.close('all')
+    matplotlib.pyplot.close('all')
     buf.seek(0)
     pnguri = 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read()))
     return pnguri
 
-def dcm2uri(fnamne):
+def dcm2uri(fname):
     d=pydicom.read_file(fname)
-    plt.imshow(d.pixel_data)
+    matplotlib.pyplot.imshow(d.pixel_data)
     uri=currfig2uri()
     return uri
 
@@ -76,7 +75,7 @@ def processLeeds():
             savename=os.path.join(tempdir, filename)
             file.save(savename)
             try:
-                
+                dcmuri = dcm2uri(savename)
                 leeds=BWHLeeds.BWHLeeds(savename)
                 leeds.analyze()
                 pdfname = os.path.join(tempdir,"Leeds.pdf")
@@ -97,6 +96,7 @@ def processLeeds():
             except:
                 logtext+="Failed processing leeds!\n"
                 logtext+="Are you sure you selected a Leeds phantom image?\n"
+                logtext+='Uploaded Image:\n<img src = "%s" class="img-responsive"/>\n'%dcmuri
                 logtext+="\nDebug information:\n"
                 logtext+=traceback.format_exc()
             finally:
@@ -123,6 +123,7 @@ def processLasVegas():
             savename=os.path.join(tempdir, filename)
             file.save(savename)
             try:
+                dcmuri = dcm2uri(savename)
                 lv=BWHLasVegas.BWH_LV(savename)
                 lv.analyze()
                 pdfname = os.path.join(tempdir,"LasVegas.pdf")
@@ -143,6 +144,7 @@ def processLasVegas():
             except:
                 logtext+="Failed processing LasVegas phantom!\n"
                 logtext+="Are you sure you selected a LasVegas phantom image?\n"
+                logtext+='Uploaded Image:\n<img src = "%s" class="img-responsive"/>\n'%dcmuri
                 logtext+="\nDebug information:\n"
                 logtext+=traceback.format_exc()
             finally:
