@@ -24,8 +24,11 @@ import io,urllib,shutil
 
 import QAServerConfig
 
+try:
+    UPLOAD_FOLDER = os.environ['PYLINAC_TEMPDIR']
+except KeyError:
+    UPLOAD_FOLDER = os.path.join('.','PyLinacTemp')
 
-UPLOAD_FOLDER = os.path.join('/','var','tmp','PyLinacTemp')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
     
