@@ -22,6 +22,7 @@ import traceback
 import base64
 import io,urllib,shutil
 import pydicom
+import IMRTQA as QA
 
 try:
     UPLOAD_FOLDER = os.environ['PYLINAC_TEMPDIR']
@@ -232,8 +233,8 @@ def processCatPhan():
 
     except:
         logtext+=traceback.format_exc()
-    finally:
-        shutil.rmtree(tempdir)
+#    finally:
+#        shutil.rmtree(tempdir)
         
     logtext+="\n"
     logtext+=cbct.results()
@@ -244,9 +245,95 @@ def processCatPhan():
     logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
     logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s","CatPhan.pdf")>Download PDF</button>\n'%data_uri
 
+    return make_response(Markup(logtext.replace('\n','<br/>')))\
 
 
+@app.route("/IMRTQA/Process", methods=['POST'])
+def processIMRTQA():
+
+    uploaded_files = request.files.getlist("file")
+    tempdir=tempfile.mkdtemp(dir=app.config['UPLOAD_FOLDER'])
+#
+    tempfiles=[]
+    logtext="Received %i files\n\n"%len(uploaded_files)
+    try:
+        for fs in uploaded_files:
+            filename = secure_filename(fs.filename)
+            savename=os.path.join(tempdir, filename)
+            fs.save(savename)
+            tempfiles.append(savename)
+
+        gCalc,rtplan = QA.scanFolder(tempdir)    
+        
+        logtext='<font size="+2"><strong>%s\n%s\n%s\n\n</strong></font>'%(rtplan.get_Name,rtplan.get_ID,rtplan.get_PlanName)
+ 
+        for key,gc in gCalc.items():     
+            logtext+= '<font size="+2"><strong>Results for %s</strong></font>\n\n'%key
+            gc.analyzeAll()
+        
+            logtext+='<strong>Histograms</strong>\n'
+            gc.plotAllInOne()
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(10, 4)
+            fig.tight_layout()
+            pnguri=currfig2uri()
+            logtext+='<img src = "%s" class="img-responsive"/>'%pnguri 
+            logtext+="\n"
+            logtext+='<strong>Gamma Index Evaluations</strong>\n'
+            gc.generateGammaTable()
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(10,4)
+            fig.tight_layout()
+            pnguri=currfig2uri()
+            logtext+='<img src = "%s" class="img-responsive"/>'%pnguri 
+            logtext+="\n"
+        
+            if key is 'composite':
+                logtext+='<strong>Detector Boards</strong>\n'
+                gc.plotAllBoards()
+                fig = matplotlib.pyplot.gcf()
+                fig.set_size_inches(8,4)
+                fig.tight_layout()
+                pnguri=currfig2uri()
+                logtext+='<img src = "%s" class="img-responsive"/>'%pnguri 
+                logtext+="\n"
+            
+                logtext+='<strong>Dose Profiles Board: 0</strong>\n'
+                gc.plotAllProfiles(board=0)
+                fig = matplotlib.pyplot.gcf()
+                fig.set_size_inches(8,20)
+                fig.tight_layout()
+                pnguri=currfig2uri()
+                logtext+='<img src = "%s" class="img-responsive"/>'%pnguri 
+                logtext+="\n"
+            
+                logtext+='<strong>Dose Profiles Board: 1</strong>\n'
+                gc.plotAllProfiles(board=1)
+                fig = matplotlib.pyplot.gcf()
+                fig.set_size_inches(8,20)
+                fig.tight_layout()
+                pnguri=currfig2uri()
+                logtext+='<img src = "%s" class="img-responsive"/>'%pnguri 
+                logtext+="\n"
+            
+        logtext+="\n"
+        pdfname = os.path.join(tempdir,"Report.pdf")
+        QA.publish_pdf(gCalc,rtplan,path=tempdir, filename="Report.pdf")    
+        
+        data_uri = base64.b64encode(open(pdfname, "rb").read()).decode('ascii')
+
+        
+        logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
+        logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s","Report.pdf")>Download PDF</button>\n'%data_uri
+
+    except:
+        logtext+=traceback.format_exc()
+    finally:
+        shutil.rmtree(tempdir)
     
-    return make_response(Markup(logtext.replace('\n','<br/>')))
+
+    return make_response(Markup(logtext.replace('\n','<br/>')))       
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=5001, debug=True,threaded=True)
