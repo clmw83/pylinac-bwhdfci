@@ -338,7 +338,7 @@ class GammaDiode(Diode):
         
         return dist
         
-    def calcGamma(self,doseCube,directionsGamma,rad=[10.,5],includeDTA=[0.2,5.0],doseDevRange=None,spatialDevRange=None):
+    def calcGamma(self,doseCube,directionsGamma,rad=[10.,5],includeDTA=[0.1,5.0],doseDevRange=None,spatialDevRange=None):
         # dta and gamma
         radius = np.linspace(0.,rad[0],rad[1])
 
@@ -434,14 +434,7 @@ class DetectorBoard():
     def plotDiodes2D(self,color='r'):
         for d in self.diodes:
             self.doseThreshold
-            plt.plot(d.r,d.z,'o',markersize = 2.5,color = color)
-#        ax = plt.axes(projection='3d')
-#        ax.plot3D(points[:,0],points[:,1],points[:,2],'xb')
-#        
-#        for d in self.diodes:
-#            ax.plot3D([d.x],[d.y],[d.z],'*r')
-#            
-        
+            plt.plot(d.r,d.z,'o',markersize = 2.5,color = color)  
         
         
         
@@ -591,8 +584,10 @@ class GammaCalc(GammaSettings):
                     v.append(val)
                     if val<=1:
                         passed += 1
-          
-        passed = float(100.*passed/len(v))  
+        try:  
+            passed = float(100.*passed/len(v))
+        except:
+              passed = 0. 
         return v,passed
         
     
@@ -606,8 +601,10 @@ class GammaCalc(GammaSettings):
         plt.xlabel('Gamma Index')
         plt.ylabel('Frequency [% of {:d}]'.format(len(v)))
         plt.title('{:3.1f}% passed with index<=1'.format(passed))
-        plt.text(plt.xlim()[1]*0.5,plt.ylim()[1]*0.9,'mean {:3.2f}'.format(np.mean(v)))
-        plt.text(plt.xlim()[1]*0.5,plt.ylim()[1]*0.8,'max {:3.2f}'.format(np.max(v)))
+        if len(v)>0
+            plt.text(plt.xlim()[1]*0.5,plt.ylim()[1]*0.9,'mean {:3.2f}'.format(np.mean(v)))
+            plt.text(plt.xlim()[1]*0.5,plt.ylim()[1]*0.8,'max {:3.2f}'.format(np.max(v)))
+
 
     def getDoseDevPassingRate(self,doseDev = 0.03):
         v = []

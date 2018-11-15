@@ -325,8 +325,6 @@ def processIMRTQA():
         
         data_uri = base64.b64encode(open(pdfname, "rb").read()).decode('ascii')
 
-        
-        logtext+='<img src = "%s" class="img-responsive"/>'%pnguri
         logtext+='<button type="button" class="btn btn-success" onclick=DownloadURI("%s","Report.pdf")>Download PDF</button>\n'%data_uri
 
     except:
