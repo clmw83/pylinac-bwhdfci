@@ -247,6 +247,9 @@ def processCatPhan():
 
     return make_response(Markup(logtext.replace('\n','<br/>')))\
 
+@app.route("/IMRTQA")
+def IMRTQA():
+    return render_template('IMRTQA.html')
 
 @app.route("/IMRTQA/Process", methods=['POST'])
 def processIMRTQA():
