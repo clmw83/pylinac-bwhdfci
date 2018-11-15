@@ -692,14 +692,14 @@ class GammaCalc(GammaSettings):
         
             for i in range(self.phantom[0].columns):
                 plt.subplot(M, N, i+1)
-                self.getProfile('R',i,0,0.03,3.,subplot=True)   
+                self.getProfile('R',i,board,0.03,3.,subplot=True)   
         elif profile=='Z':
             M = np.ceil(self.phantom[board].columns/N)
             plt.figure()
         
             for i in range(self.phantom[0].rows):
                 plt.subplot(M, N, i+1)
-                self.getProfile('Z',i,0,0.03,3.,subplot=True)    
+                self.getProfile('Z',i,board,0.03,3.,subplot=True)    
            
     def plotDetectorBoard(self,bIndex,type='doseDev',threshold=3.,subplot=False):
         points,z,r = self.phantom[bIndex].getDetectorPlane() 
