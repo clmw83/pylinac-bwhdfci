@@ -80,7 +80,7 @@ def add_pylinac_page_template(canvas, analysis_title, file_name=None, file_creat
         Title to be displayed in the page header.
     """
     # draw logo and header separation line
-    canvas.drawImage(retrieve_demo_file(url='Pylinac_Full_cropped.png'),
+    canvas.drawImage(retrieve_demo_file(url='danafarber-logo.png'),
                          1 * cm, 26.5 * cm, width=5 * cm, height=3 * cm, preserveAspectRatio=True)
     canvas.line(1 * cm, 26.5 * cm, 20 * cm, 26.5 * cm)
     # draw title
