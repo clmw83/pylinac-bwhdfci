@@ -601,7 +601,7 @@ class GammaCalc(GammaSettings):
         plt.xlabel('Gamma Index')
         plt.ylabel('Frequency [% of {:d}]'.format(len(v)))
         plt.title('{:3.1f}% passed with index<=1'.format(passed))
-        if len(v)>0
+        if len(v)>0:
             plt.text(plt.xlim()[1]*0.5,plt.ylim()[1]*0.9,'mean {:3.2f}'.format(np.mean(v)))
             plt.text(plt.xlim()[1]*0.5,plt.ylim()[1]*0.8,'max {:3.2f}'.format(np.max(v)))
 

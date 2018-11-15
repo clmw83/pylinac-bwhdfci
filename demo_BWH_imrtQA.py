@@ -8,7 +8,7 @@ Created on Tue Nov 13 23:57:00 2018
 
 import matplotlib.pyplot as plt
 
-import IMRTQA# as QA
+import IMRTQA
 #
 folder = r'C:\Users\cvg4\Dropbox (Partners HealthCare)\QA\IMRT-QA\Gamma\Pat03'
 gCalc,rtplan= IMRTQA.scanFolder(folder)
