@@ -679,14 +679,20 @@ class GammaCalc(GammaSettings):
         plt.subplot(1, 3, 3)
         self.plotGamma(doseDev=0.03,spatialDev=3.,range = [0,2],subplot=True)
         plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-
+        
+    def plotGroupedProfiles(self,board=0,N=3,index=0,profile='R'):
+         plt.figure()
+         for i in range(N):
+                plt.subplot(1, N, i+1)
+                self.getProfile('R',index*N+i,board,0.03,3.,subplot=True)   
+        
+        
     
     def plotAllProfiles(self,board=0,N=3,profile='R'):
         
         if profile=='R':
             M = np.ceil(self.phantom[board].columns/N)
             plt.figure()
-        
             for i in range(self.phantom[0].columns):
                 plt.subplot(M, N, i+1)
                 self.getProfile('R',i,board,0.03,3.,subplot=True)   
@@ -697,7 +703,7 @@ class GammaCalc(GammaSettings):
             for i in range(self.phantom[0].rows):
                 plt.subplot(M, N, i+1)
                 self.getProfile('Z',i,board,0.03,3.,subplot=True)    
-           
+          
     def plotDetectorBoard(self,bIndex,type='doseDev',threshold=3.,subplot=False):
         points,z,r = self.phantom[bIndex].getDetectorPlane() 
         
@@ -708,6 +714,7 @@ class GammaCalc(GammaSettings):
             plt.figure()  
             
         plt.imshow(im,extent=extent,cmap='bone')
+        
         
         for d in self.phantom[bIndex].diodes:
             if d.validDoseDev and type is 'doseDev':
@@ -796,6 +803,12 @@ def processExcelSheet(sheet):
     detector[iBoard].ready()      
     return detector,fieldName
 
+def addPageBreak(canvas,rtplan):
+    canvas.showPage()
+    pdf.add_pylinac_page_template(canvas, analysis_title='IMRT QA Report')
+    textHeader = ['{:s}'.format(rtplan.get_Name),'{:s}'.format(rtplan.get_ID),'{:s}'.format(rtplan.get_PlanName)]
+    pdf.draw_text(canvas, x=15* cm, y=28.25 * cm, text=textHeader ,fontsize=13)  
+
 def publish_pdf(gamma,rtplan,path=None, filename=None, author=None, unit=None, notes=None, open_file=False):
 
 
@@ -827,20 +840,21 @@ def publish_pdf(gamma,rtplan,path=None, filename=None, author=None, unit=None, n
     matplotlib.pyplot.savefig(buf, format='png', bbox_inches=nbbox,dpi=900)
     matplotlib.pyplot.close('all')
     
-    actHeight -= cm*(m*by)
+    actHeight -= cm*m*by
   
     img = pdf.create_stream_image(buf)
     canvas.drawImage(img ,cm*(21-m*bx)/2-0.5, actHeight, width=m*bx* cm, height=m*by*cm, preserveAspectRatio=True)    
     actHeight -=1*cm
     #
     for key,gc in gamma.items():
+        
+        ## Block 1
         # Field Info
         actHeightL = actHeight
         actHeight -=1*cm
         text = ['Results for {:s}'.format(key)]
         actHeight0 = actHeight
         actHeight -=1*cm
-        
         #  All Plots     
         gc.plotAllInOne()
         fig = matplotlib.pyplot.gcf()
@@ -853,11 +867,20 @@ def publish_pdf(gamma,rtplan,path=None, filename=None, author=None, unit=None, n
         img1 = pdf.create_stream_image(buf)
         m = 19/(10*inch2cm)
         sizeImg1 = [19,3*inch2cm*m]
-  
-        actHeight -= sizeImg1[1]*cm
-        actHeight1 = actHeight
+        actHeight -=sizeImg1[1]*cm
+
+        if actHeight<0:
+            addPageBreak(canvas,rtplan)
+            actHeight0 = 25.5*cm
+            actHeight = actHeight0-1*cm-sizeImg1[1]*cm
+        else:
+            canvas.line(1 * cm, actHeightL, 20 * cm, actHeightL)       
+#            
+        pdf.draw_text(canvas, x=1*cm, y=actHeight0, text=text,fontsize=13) 
+        canvas.drawImage(img1 ,1*cm, actHeight, width=sizeImg1[0]*cm, height=sizeImg1[1]*cm, preserveAspectRatio=True) 
         actHeight -=1*cm
-        
+
+        ## Block 2
         # Gamma Table
         table = gc.generateGammaTable()
         plt.gcf().canvas.draw()
@@ -875,33 +898,69 @@ def publish_pdf(gamma,rtplan,path=None, filename=None, author=None, unit=None, n
         matplotlib.pyplot.savefig(buf, format='png', bbox_inches=nbbox,dpi=900)
         matplotlib.pyplot.close('all')
         img2 = pdf.create_stream_image(buf)
-    
         actHeight -= cm*(m*by)
-        actHeight2 = actHeight
         
-        if actHeight2<0:
-            dh = 25.5*cm-actHeight0
-            actHeight0 +=dh
-            actHeight1 +=dh
-            actHeight2 +=dh
-            actHeight = actHeight2
-            canvas.showPage()
-            pdf.add_pylinac_page_template(canvas, analysis_title='IMRT QA Report')
-            textHeader = ['{:s}'.format(rtplan.get_Name),'{:s}'.format(rtplan.get_ID),'{:s}'.format(rtplan.get_PlanName)]
-            pdf.draw_text(canvas, x=15* cm, y=28.25 * cm, text=textHeader ,fontsize=13)  
-
+        if actHeight<0:
+            addPageBreak(canvas,rtplan)
+            actHeight = 25.5*cm-cm*(m*by)
             
-        else:
-            canvas.line(1 * cm, actHeightL, 20 * cm, actHeightL)   
-             
-        pdf.draw_text(canvas, x=1*cm, y=actHeight0, text=text,fontsize=13) 
-        canvas.drawImage(img1 ,1*cm, actHeight1, width=sizeImg1[0]*cm, height=sizeImg1[1]*cm, preserveAspectRatio=True) 
-        canvas.drawImage(img2 ,cm*(21-sizeImg2[0])/2, actHeight2, width=sizeImg2[0]*cm, height=sizeImg2[1]*cm, preserveAspectRatio=True) 
+        canvas.drawImage(img2 ,cm*(21-sizeImg2[0])/2, actHeight, width=sizeImg2[0]*cm, height=sizeImg2[1]*cm, preserveAspectRatio=True) 
         actHeight -=1*cm
 
+    actHeightL = actHeight
+    actHeight -=1*cm
+    actHeight0 = actHeight
+    actHeight -=1*cm
+    
+    gc = gamma['composite']
+    gc.plotAllBoards()
+    fig = matplotlib.pyplot.gcf()
+    fig.set_size_inches(8,4)
+    fig.tight_layout()
+    buf = io.BytesIO()
+    matplotlib.pyplot.savefig(buf, format='png')
+    matplotlib.pyplot.close('all')
+    buf.seek(0)
+    img3 = pdf.create_stream_image(buf)
+    m = 19/(8*inch2cm)
+    sizeImg3 = [19,4*inch2cm*m]
+    actHeight -=sizeImg3[1]*cm
+    
+    if actHeight<0:
+        addPageBreak(canvas,rtplan)
+        actHeight0 = 25.5*cm
+        actHeight = actHeight0-1*cm-sizeImg1[1]*cm
+    else:
+        canvas.line(1 * cm, actHeightL, 20 * cm, actHeightL)    
+    
+    pdf.draw_text(canvas, x=1*cm, y=actHeight0, text='Detector boards and profiles of the composite',fontsize=13) 
+    canvas.drawImage(img3 ,cm*(21-sizeImg3[0])/2, actHeight, width=sizeImg3[0]*cm, height=sizeImg3[1]*cm, preserveAspectRatio=True) 
+    
+    
+    for iboard in range(2):
+        for index in range(7):
+            gc.plotGroupedProfiles(board=iboard,index =0)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(8,3)
+            fig.tight_layout()
+            buf = io.BytesIO()
+            matplotlib.pyplot.savefig(buf, format='png')
+            matplotlib.pyplot.close('all')
+            buf.seek(0)
+            img3 = pdf.create_stream_image(buf)
+            m = 19/(8*inch2cm)
+            sizeImg3 = [19,3*inch2cm*m]
+            actHeight -=sizeImg3[1]*cm
+        
+            if actHeight<1*cm:
+                addPageBreak(canvas,rtplan)
+                actHeight = 25.5*cm-sizeImg3[1]*cm
+
+            canvas.drawImage(img3 ,cm*(21-sizeImg3[0])/2, actHeight, width=sizeImg3[0]*cm, height=sizeImg3[1]*cm, preserveAspectRatio=True)
+    
+        actHeight -=1*cm
+        
     pdf.finish(canvas, open_file=open_file, filename=filename)
-    
-    
 
 
 
