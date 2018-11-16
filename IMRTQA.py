@@ -939,7 +939,7 @@ def publish_pdf(gamma,rtplan,path=None, filename=None, author=None, unit=None, n
     
     for iboard in range(2):
         for index in range(7):
-            gc.plotGroupedProfiles(board=iboard,index =0)
+            gc.plotGroupedProfiles(board=iboard,index =index)
             fig = matplotlib.pyplot.gcf()
             fig.set_size_inches(8,3)
             fig.tight_layout()
